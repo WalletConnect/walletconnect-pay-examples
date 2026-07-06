@@ -1,0 +1,30 @@
+{
+  "name": "@walletconnect/pay-example-headless-checkout-vanilla",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "dev:client": "vite",
+    "dev:server": "node server/index.mjs",
+    "build": "vite build",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@reown/appkit": "1.8.22-headless-reset-wcuri.0",
+    "@reown/appkit-adapter-solana": "1.8.22-headless-reset-wcuri.0",
+    "@reown/appkit-adapter-wagmi": "1.8.22-headless-reset-wcuri.0",
+    "@solana/web3.js": "1.98.4",
+    "@walletconnect/pay-appkit": "^0.2.0",
+    "@walletconnect/pay-core": "^0.2.0",
+    "@walletconnect/pay-state": "^0.2.0",
+    "qrcode": "1.5.4",
+    "viem": "2.51.3",
+    "wagmi": "3.6.15"
+  },
+  "devDependencies": {
+    "@types/qrcode": "1.5.5",
+    "typescript": "5.9.3",
+    "vite": "5.4.20"
+  }
+}
