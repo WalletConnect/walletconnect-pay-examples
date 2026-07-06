@@ -1,9 +1,12 @@
-# @walletconnect/pay-example-headless-checkout-vanilla
+# headless-checkout-vanilla (Vite + vanilla TS)
 
 A complete checkout built on the headless **WalletConnect Pay SDK** with **no React**
 and **headful AppKit** (the standard modal — no enterprise headless feature). It's the
 vanilla-JS counterpart to [`../headless-checkout`](../headless-checkout) (Next.js), and
 proves a plain-TS host can drive the full payment flow.
+
+This is a standalone app: it pulls the `@walletconnect/pay-*` packages from npm (`^0.2.0`),
+so there is nothing to build in a monorepo first.
 
 ## What it shows
 
@@ -66,16 +69,11 @@ The Engine key never reaches the browser: the `Transport` seam points at the sam
    | `WCP_API_URL`             | server | Engine base URL (defaults to staging when unset)                 |
    | `WCP_WALLET_API_KEY`      | server | Engine wallet API key — **secret**, server-side only             |
 
-2. Build the SDK packages (the example consumes their built `dist/`):
+2. Install dependencies and run it (starts the Engine proxy + the Vite client together):
 
    ```bash
-   pnpm build:packages   # from the repo root
-   ```
-
-3. Run it (starts the Engine proxy + the Vite client together):
-
-   ```bash
-   pnpm --filter @walletconnect/pay-example-headless-checkout-vanilla dev
+   pnpm install
+   pnpm dev
    # client → http://localhost:3012 , proxy → http://localhost:8787
    ```
 
