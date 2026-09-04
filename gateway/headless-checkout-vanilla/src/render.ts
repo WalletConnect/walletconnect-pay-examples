@@ -36,6 +36,28 @@ type AmountLike = {
 }
 type OptionLike = { id: string; amount?: AmountLike; actions?: Array<{ type: string }> }
 type CollectFieldLike = { id: string; name: string; required: boolean; type: 'text' | 'date' | 'checkbox' }
+type CollectSchemaLike = {
+  properties?: Record<string, { title?: string; type?: string; format?: string; const?: unknown }>
+  required?: string[]
+}
+type CollectDataLike = { schema?: CollectSchemaLike; fields?: CollectFieldLike[] }
+
+/** Flatten a JSON-Schema `collectData.schema` into the field model the form renders. */
+function schemaToFields(schema: CollectSchemaLike): CollectFieldLike[] {
+  const required = new Set(schema.required ?? [])
+
+  return Object.entries(schema.properties ?? {}).map(([id, prop]) => ({
+    id,
+    name: prop.title ?? id,
+    required: required.has(id),
+    type:
+      prop.const !== undefined || prop.type === 'boolean'
+        ? 'checkbox'
+        : prop.format === 'date'
+          ? 'date'
+          : 'text'
+  }))
+}
 
 // Each machine state maps to one of the four buyer-facing stages, so the UI shows one
 // card per stage and locks the ones still ahead. Mirrors the React example's STAGE map.
@@ -700,7 +722,10 @@ export function createCheckout(options: CheckoutOptions): Checkout {
       })
     }
 
-    const fields = (snapshot.collectData as { fields?: CollectFieldLike[] } | undefined)?.fields ?? []
+    // Render from `collectData.schema` (the Engine's JSON Schema, source of truth);
+    // `collectData.fields` is the deprecated fallback.
+    const collect = snapshot.collectData as CollectDataLike | undefined
+    const fields = collect?.schema ? schemaToFields(collect.schema) : (collect?.fields ?? [])
     const form = el('form', { class: 'form' })
     const inputs = new Map<string, HTMLInputElement>()
 
