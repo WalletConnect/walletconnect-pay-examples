@@ -323,16 +323,17 @@ export function Checkout({ paymentId }: { paymentId: string }) {
       </div>
     )
 
-  // The form is driven by the selected option's `collectData.fields` schema, and
-  // is only interactive while the machine is actually in the IC step. When the
-  // option skips IC (or it's already done), show a read-only note so a "peeked"
-  // card can't fire INFO_CAPTURED into a state that ignores it.
-  const schemaFields =
-    (snapshot.collectData as { fields?: CollectField[] } | undefined)?.fields ?? []
+  // Render the identity form from the option's `collectData.schema` (the Engine's
+  // JSON Schema — the source of truth). `collectData.fields` is the deprecated
+  // fallback. Only interactive while the machine is actually in the IC step; when the
+  // option skips IC (or it's already done), show a read-only note so a "peeked" card
+  // can't fire INFO_CAPTURED into a state that ignores it.
+  const collect = snapshot.collectData as CollectData | undefined
+  const nativeFields = collect?.schema ? schemaToFields(collect.schema) : (collect?.fields ?? [])
   const icBody =
     step === 'InformationCapture' ? (
       <InfoCaptureForm
-        fields={schemaFields}
+        fields={nativeFields}
         onSubmit={async data => {
           submitInfoCapture(data)
 
@@ -1107,12 +1108,36 @@ function ManageWalletsDialog({
 const inputClass =
   'w-full rounded-lg border bg-muted/40 px-4 py-3 text-sm outline-none transition-colors focus:bg-background'
 
-/** One field from the option's `collectData.fields` schema. */
+/** One field from the option's `collectData` (rendered by {@link InfoCaptureForm}). */
 type CollectField = {
   id: string
   name: string
   required: boolean
   type: 'text' | 'date' | 'checkbox'
+}
+
+/** The Engine's `collectData` as the SDK surfaces it on the snapshot. */
+type CollectSchema = {
+  properties?: Record<string, { title?: string; type?: string; format?: string; const?: unknown }>
+  required?: string[]
+}
+type CollectData = { schema?: CollectSchema; fields?: CollectField[] }
+
+/** Flatten a JSON-Schema `collectData.schema` into the field model the form renders. */
+function schemaToFields(schema: CollectSchema): CollectField[] {
+  const required = new Set(schema.required ?? [])
+
+  return Object.entries(schema.properties ?? {}).map(([id, prop]) => ({
+    id,
+    name: prop.title ?? id,
+    required: required.has(id),
+    type:
+      prop.const !== undefined || prop.type === 'boolean'
+        ? 'checkbox'
+        : prop.format === 'date'
+          ? 'date'
+          : 'text'
+  }))
 }
 
 /**
